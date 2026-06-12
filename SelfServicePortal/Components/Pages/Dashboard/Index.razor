@@ -1,0 +1,456 @@
+﻿@page "/"
+@using SelfServicePortal.Components.Layout
+@layout EmptyLayout
+@inject NavigationManager Nav
+
+<PageTitle>Self-Service Portal</PageTitle>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+<div class="ssp-shell">
+
+    <!-- ── Left: Brand panel ── -->
+    <div class="ssp-brand">
+        <div class="ssp-logo">
+            <div class="ssp-logo-mark">SP</div>
+            <div class="ssp-logo-text">
+                Self-Service Portal
+                <span>Powered by Attain Enterprise</span>
+            </div>
+        </div>
+
+        <div class="ssp-hero">
+            <span class="ssp-eyebrow">Let's Get Started'</span>
+            <h1 class="ssp-headline">
+                Your Requests,<br />
+                <em>Your Progress.</em>
+            </h1>
+            <p class="ssp-tagline">
+                Access your profile, submit requests, view statements,
+                and stay informed though a secure and a user-friendly platform .
+            </p>
+            <div class="ssp-pills">
+                <div class="ssp-pill"><span class="ssp-dot"></span>Account Overview</div>
+                <div class="ssp-pill"><span class="ssp-dot"></span>Request Tracking</div>
+                <div class="ssp-pill"><span class="ssp-dot"></span>Secure &amp; Private</div>
+                <div class="ssp-pill"><span class="ssp-dot"></span>Document Access</div>
+            </div>
+        </div>
+
+        <div class="ssp-brand-footer">
+            &copy; @DateTime.Now.Year Attain Enterprise Solutions. All rights reserved.
+        </div>
+    </div>
+
+    <!-- ── Right: Auth card ── -->
+    <div class="ssp-auth">
+        <div class="ssp-auth-box">
+            <h2 class="ssp-auth-title">Get started</h2>
+            <p class="ssp-auth-sub">Sign in or create a new account.</p>
+
+            <div class="ssp-cta-group">
+                <a href="/auth/login" class="ssp-cta-btn primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Sign In
+                </a>
+                <a href="/auth/register" class="ssp-cta-btn outline">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Create Account
+                </a>
+            </div>
+
+            <div class="ssp-divider">
+                <span>or continue with</span>
+            </div>
+
+            <button class="ssp-google-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                Continue with Google
+            </button>
+
+            <div class="ssp-trust">
+                <span class="ssp-trust-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    256-bit encrypted
+                </span>
+                <span class="ssp-trust-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    24/7 access
+                </span>
+                <span class="ssp-trust-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    GDPR compliant
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --ssp-navy: #0B1F45;
+        --ssp-navy-mid: #132952;
+        --ssp-navy-light: #1A3A6B;
+        --ssp-gold: #C8960A;
+        --ssp-off-white: #F5F7FA;
+        --ssp-slate: #8EA3BB;
+        --ssp-border: #D5DCE8;
+        --ssp-white: #FFFFFF;
+        --ssp-dim: rgba(255,255,255,0.55);
+    }
+
+    .ssp-shell {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Brand ── */
+    .ssp-brand {
+        background:purple;
+        color: var(--ssp-white);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 48px 56px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .ssp-brand::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        .ssp-brand::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--ssp-gold), transparent);
+        }
+
+    .ssp-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .ssp-logo-mark {
+        width:55px;
+        height: 55px;
+        background:white;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Sora', sans-serif;
+        font-weight: 900;
+        font-size: 17px;
+        color: var(--ssp-navy);
+        flex-shrink: 0;
+    }
+
+    .ssp-logo-text {
+        font-family: 'Sora', sans-serif;
+        font-weight: 900;
+        font-size: 20px;
+        color: var(--ssp-white);
+        line-height: 1.2;
+    }
+
+        .ssp-logo-text span {
+            display: block;
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--ssp-slate);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+    .ssp-hero {
+        position: relative;
+        z-index: 1;
+    }
+
+    .ssp-eyebrow {
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ssp-gold);
+        margin-bottom: 18px;
+    }
+
+    .ssp-headline {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(40px, 3.2vw, 50px);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 18px;
+    }
+
+        .ssp-headline em {
+            font-style: normal;
+            color: var(--ssp-gold);
+        }
+
+    .ssp-tagline {
+        font-size: 15px;
+        color: var(--ssp-dim);
+        line-height: 1.7;
+        max-width: 380px;
+    }
+
+    .ssp-pills {
+        display: flex;
+        flex-wrapx;
+        margin-top: 28px;
+    }
+
+    .ssp-pill {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 13px;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ssp-slate);
+        background:blue;
+    }
+
+    .ssp-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: deeppink;
+        flex-shrink: 0;
+    }
+
+    .ssp-brand-footer {
+        position: relative;
+        z-index: 1;
+        font-size: 15px;
+        color: black;
+    }
+
+    /* ── Auth ── */
+    .ssp-auth {
+        background: purple;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 40px;
+    }
+
+    .ssp-auth-box {
+        width: 100%;
+        max-width: 400px;
+        animation: sspFadeUp 0.45s ease both;
+    }
+
+    @@keyframes sspFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .ssp-auth-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--ssp-navy);
+        margin-bottom: 8px;
+    }
+
+    .ssp-auth-sub {
+        font-size: 14px;
+        color: var(--ssp-slate);
+        margin-bottom: 36px;
+    }
+
+    /* CTA buttons */
+    .ssp-cta-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .ssp-cta-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 800;
+        font-family: 'Inter', sans-serif;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+        .ssp-cta-btn.primary {
+            background: var(--ssp-navy);
+            color: var(--ssp-white);
+            border: 2px solid var(--ssp-navy);
+        }
+
+            .ssp-cta-btn.primary:hover {
+                background: red;
+                border-color: var(--ssp-navy-light);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(11,31,69,0.18);
+            }
+
+        .ssp-cta-btn.outline {
+            background: darkgreen;
+            color: var(--ssp-navy);
+            border: 4px solid var(--ssp-border);
+        }
+
+            .ssp-cta-btn.outline:hover {
+                border-color: var(--ssp-navy);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            }
+
+    /* Divider */
+    .ssp-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-size: 12px;
+        color:deeppink;
+        font-weight: 500;
+    }
+
+        .ssp-divider::before, .ssp-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background:green;
+        }
+
+    /* Google */
+    .ssp-google-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 13px;
+        background: deeppink;
+        border: 1.5px solid var(--ssp-border);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        color: var(--ssp-navy);
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 28px;
+    }
+
+        .ssp-google-btn:hover {
+            border-color: var(--ssp-slate);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+    /* Trust badges */
+    .ssp-trust {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .ssp-trust-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ssp-slate);
+    }
+
+        .ssp-trust-item svg {
+            opacity: 0.7;
+        }
+
+    /* ── Responsive ── */
+    @@media (max-width: 768px) {
+        .ssp-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .ssp-brand {
+            padding: 36px 28px;
+            gap: 28px;
+        }
+
+        .ssp-brand-footer {
+            display: none;
+        }
+
+        .ssp-auth {
+            padding: 36px 24px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+@code { }

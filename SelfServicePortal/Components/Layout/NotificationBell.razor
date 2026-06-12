@@ -1,0 +1,95 @@
+﻿@using SelfServicePortal
+@inject INotificationService NotificationService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<MudMenu Icon="@Icons.Material.Filled.Notifications"
+         Color="Color.Inherit"
+         AnchorOrigin="Origin.BottomRight">
+    <ActivatorContent>
+        <MudBadge Content="@_unreadCount"
+                  Visible="@(_unreadCount > 0)"
+                  Color="Color.Error"
+                  Overlap="true">
+            <MudIconButton Icon="@Icons.Material.Filled.Notifications"
+                           Color="Color.Inherit" />
+        </MudBadge>
+    </ActivatorContent>
+    <ChildContent>
+        <MudMenuItem OnClick="MarkAllRead">
+            <MudText Typo="Typo.caption"
+                     Color="Color.Secondary">
+                Mark all as read
+            </MudText>
+        </MudMenuItem>
+        <MudDivider />
+        @if (_notifications.Count == 0)
+        {
+            <MudMenuItem>
+                <MudText Typo="Typo.body2">
+                    No new notifications
+                </MudText>
+            </MudMenuItem>
+        }
+        else
+        {
+            @foreach (var notification in _notifications)
+            {
+                <MudMenuItem OnClick="() =>
+                                                 OpenRequest(notification)">
+<MudText Typo="Typo.body2">
+                        @notification.Message
+                    </MudText>
+                    <MudText Typo="Typo.caption"
+                             Color="Color.Secondary">
+                        @notification.CreatedAt
+                        .ToString("dd MMM HH:mm")
+                    </MudText>
+                </MudMenuItem>
+            }
+        }
+    </ChildContent>
+</MudMenu>
+
+@code {
+    int _unreadCount = 0;
+    int _userId;
+    List<Notification> _notifications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider
+            .GetAuthenticationStateAsync();
+
+        var userIdClaim = authState.User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+        {
+            _userId = int.Parse(userIdClaim.Value);
+            await LoadNotifications();
+        }
+    }
+
+    async Task LoadNotifications()
+    {
+        _notifications = await NotificationService
+            .GetUnreadNotifications(_userId);
+        _unreadCount = _notifications.Count;
+    }
+
+    async Task MarkAllRead()
+    {
+        await NotificationService.MarkAllAsRead(_userId);
+        await LoadNotifications();
+    }
+
+    async Task OpenRequest(Notification notification)
+    {
+        await NotificationService
+            .MarkAsRead(notification.NotificationId);
+        Navigation.NavigateTo(
+            $"/requests/{notification.RequestId}");
+        await LoadNotifications();
+    }
+}

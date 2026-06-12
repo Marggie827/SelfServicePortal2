@@ -1,0 +1,570 @@
+﻿@page "/auth/login"
+@using SelfServicePortal.Components.Layout
+@using SelfServicePortal
+@layout EmptyLayout
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Sign In — Self-Service Portal</PageTitle>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+<div class="auth-shell">
+
+    <!-- ── Left brand strip ── -->
+    <div class="auth-brand">
+        <div class="auth-brand-inner">
+            <a href="/" class="auth-logo">
+                <div class="auth-logo-mark">SP</div>
+                <div class="auth-logo-text">
+                    Self-Service Portal
+                    <span>Powered by Attain Enterprise Solution Limited</span>
+                </div>
+            </a>
+            <div class="auth-brand-quote">
+                <blockquote>"Your Gateway to Digital Services."</blockquote>
+            </div>
+        </div>
+        <div class="auth-brand-footer">&copy; @DateTime.Now.Year Attain Enterprise Solutions</div>
+    </div>
+
+    <!-- ── Right form panel ── -->
+    <div class="auth-panel">
+        <div class="auth-card">
+
+            <div class="auth-card-header">
+                <div class="auth-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                </div>
+                <h1 class="auth-card-title">Welcome back</h1>
+                <p class="auth-card-sub">Sign in to your account to continue</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-alert error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    @_error
+                </div>
+            }
+
+            <div class="auth-field">
+                <label>Email address</label>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                    <input type="email" placeholder="you@example.com"
+                           @bind="_email" @bind:event="oninput"
+                           @onkeydown="OnKeyDown"
+                           autocomplete="email" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <div class="auth-field-row">
+                    <label>Password</label>
+                    <a href="/auth/forgot-password" class="auth-forgot">Forgot password?</a>
+                </div>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input type="@(_showPassword ? "text" : "password")"
+                           placeholder="Enter your password"
+                           @bind="_password" @bind:event="oninput"
+                           @onkeydown="OnKeyDown"
+                           autocomplete="current-password" />
+                    <button type="button" class="auth-eye" @onclick="() => _showPassword = !_showPassword">
+                        @if (_showPassword)
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+            </div>
+
+            <button class="auth-submit @(_busy ? "loading" : "")"
+                    @onclick="HandleLogin"
+                    disabled="@_busy">
+                @if (_busy)
+                {
+                    <span class="auth-spinner"></span>
+                    <span>Signing in…</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                }
+            </button>
+
+            <p class="auth-switch">
+                Don't have an account?
+                <a href="/auth/register">Create one — it's free</a>
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --navy:pink;
+        --navy-light: yellowgreen;
+        --gold:purple;
+        --off-white: #F5F7FA;
+        --slate: #8EA3BB;
+        --border: green;
+        --white: #FFFFFF;
+        --dim: rgba(255,255,255,0.55);
+        --error-bg: #FFF5F5;
+        --error: #C62828;
+    }
+
+    .auth-shell {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Brand strip ── */
+    .auth-brand {
+        background: var(--navy);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 40px 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .auth-brand::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        .auth-brand::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--gold), transparent 60%);
+        }
+
+    .auth-brand-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        margin-bottom: 64px;
+    }
+
+    .auth-logo-mark {
+        width: 40px;
+        height: 40px;
+        background:darkgreen;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif, sans-serif;
+        font-weight: 900;
+        font-size: 20px;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+
+    .auth-logo-text {
+        font-family: 'Sora', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        color:aqua
+        line-height: 1.5;
+    }
+
+        .auth-logo-text span {
+            display: block;
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--slate);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+    .auth-brand-quote blockquote {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(20px, 2.5vw, 30px);
+        font-weight: 700;
+        color: white;
+        line-height: 1.3;
+        border-left: 3px solid var(--gold);
+        padding-left: 20px;
+    }
+
+    .auth-brand-footer {
+        position: relative;
+        z-index: 1;
+        font-size: 11px;
+        color: rgba(255,255,255,0.2);
+    }
+
+    /* ── Form panel ── */
+    .auth-panel {
+        background: pink;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 40px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--white);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 4px 24px rgba(11,31,69,0.08);
+        animation: cardIn 0.4s ease both;
+    }
+
+    @@keyframes cardIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .auth-card-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .auth-icon-wrap {
+        width: 52px;
+        height: 52px;
+        background: #EEF2FF;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        color: var(--navy);
+    }
+
+    .auth-card-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 6px;
+    }
+
+    .auth-card-sub {
+        font-size: 14px;
+        color: var(--slate);
+    }
+
+    /* Alert */
+    .auth-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+        .auth-alert.error {
+            background: var(--error-bg);
+            color: var(--error);
+            border-left: 3px solid var(--error);
+        }
+
+    /* Fields */
+    .auth-field {
+        margin-bottom: 18px;
+    }
+
+        .auth-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #4A5568;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 7px;
+        }
+
+    .auth-field-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 7px;
+    }
+
+        .auth-field-row label {
+            margin-bottom: 0;
+        }
+
+    .auth-forgot {
+        font-size: 12px;
+        color: var(--gold);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .auth-forgot:hover {
+            text-decoration: underline;
+        }
+
+    .auth-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .auth-input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--slate);
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+
+    .auth-input-wrap input {
+        width: 100%;
+        padding: 13px 16px 13px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        background: var(--white);
+        color: var(--navy);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .auth-input-wrap input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,150,10,0.12);
+        }
+
+        .auth-input-wrap input::placeholder {
+            color: #B0BCC9;
+        }
+
+    .auth-eye {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--slate);
+        padding: 4px;
+        display: flex;
+        transition: color 0.2s;
+    }
+
+        .auth-eye:hover {
+            color: var(--navy);
+        }
+
+    /* Submit */
+    .auth-submit {
+        width: 100%;
+        padding: 14px;
+        background: var(--navy);
+        color: var(--white);
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background -color 0.4s ease, color 0.4s ease;
+        margin-top: 10px;
+        margin-bottom: 26px;
+    }
+
+        .auth-submit:hover:active {
+            background: var(--navy-light);
+            transform: translateY(-1px);
+            color:greenyellow
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+    .auth-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: violet;
+        border-radius: 70%;
+        animation: spin 0.7s linear infinite;
+    }
+
+    @@keyframes fadeIn {
+        from {
+          opacity:0;
+          transform: translateY(20px);
+        }.
+        to {
+          opacity:1;
+        transform:translateY(0);
+        }
+    }
+    
+
+    .auth-switch {
+        text-align: center;
+        font-size: 13px;
+        color: var(--slate);
+    }
+
+        .auth-switch a {
+            color: var(--gold);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .auth-switch a:hover {
+                text-decoration: underline;
+            }
+
+    /* ── Responsive ── */
+    @@media (max-width: 768px) {
+        .auth-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-brand {
+            padding: 28px 24px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            .auth-brand::after {
+                display: none;
+            }
+
+        .auth-brand-quote, .auth-brand-footer {
+            display: none;
+        }
+
+        .auth-logo {
+            margin-bottom: 0;
+        }
+
+        .auth-panel {
+            padding: 28px 20px;
+        }
+
+        .auth-card {
+            padding: 28px 24px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+@code {
+    string _email = "", _password = "", _error = "";
+    bool _busy = false, _showPassword = false;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await HandleLogin();
+    }
+
+    async Task HandleLogin()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Please enter your email and password.";
+            return;
+        }
+
+        _busy = true;
+        var user = await UserService.Login(_email, _password);
+        _busy = false;
+
+        if (user == null)
+        {
+            _error = "Invalid email or password. Please try again.";
+            return;
+        }
+
+        // TODO: set session / auth state here
+        // e.g. await ((CustomAuthStateProvider)AuthStateProvider).SetUser(user);
+
+        Navigation.NavigateTo("/admin");
+    }
+}

@@ -1,0 +1,131 @@
+﻿@page "/requests/create"
+@using SelfServicePortal.Components.Layout
+@layout MainLayout
+@inject IRequestService RequestService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">New Request</MudText>
+
+<MudCard Elevation="2">
+    <MudCardContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_title"
+                                  Label="Title"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_description"
+                                  Label="Description"
+                                  Variant="Variant.Outlined"
+                                  Lines="4"
+                                  Placeholder="Describe your issue..." />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_categoryId"
+                               Label="Category"
+                               Variant="Variant.Outlined">
+                        @foreach (var cat in _categories)
+                        {
+                            <MudSelectItem Value="@cat.CategoryId">
+                                @cat.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_priority"
+                               Label="Priority"
+                               Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Low")">Low</MudSelectItem>
+                        <MudSelectItem Value="@("Medium")">Medium</MudSelectItem>
+                        <MudSelectItem Value="@("High")">High</MudSelectItem>
+                        <MudSelectItem Value="@("Urgent")">Urgent</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudCardContent>
+    <MudCardActions Class="pa-4">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="HandleSubmit"
+                   Disabled="_submitting">
+            @if (_submitting)
+            {
+                <MudProgressCircular Size="Size.Small"
+                                     Indeterminate="true" Class="mr-2" />
+            }
+            Submit Request
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   Class="ml-3"
+                   Href="/dashboard">
+            Cancel
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    bool _loading = true, _submitting = false;
+    string _title = "", _description = "", _priority = "Medium";
+    int _categoryId, _userId;
+    List<Category> _categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider
+            .GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+            _userId = int.Parse(userIdClaim.Value);
+
+        _categories = await RequestService.GetCategories();
+        if (_categories.Any())
+            _categoryId = _categories.First().CategoryId;
+
+        _loading = false;
+    }
+
+    async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(_title))
+        {
+            Snackbar.Add("Title is required.", Severity.Warning);
+            return;
+        }
+
+        _submitting = true;
+        var request = new Request
+        {
+            Title = _title,
+            Description = _description,
+            Priority = _priority,
+            CategoryId = _categoryId,
+            UserId = _userId
+        };
+
+        bool result = await RequestService.CreateRequest(request);
+        if (result)
+        {
+            Snackbar.Add("Request submitted!", Severity.Success);
+            Navigation.NavigateTo("/requests/list");
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong.", Severity.Error);
+        }
+        _submitting = false;
+    }
+}

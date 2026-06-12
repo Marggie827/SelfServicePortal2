@@ -1,0 +1,697 @@
+﻿@page "/auth/register"
+@using SelfServicePortal.Components.Layout
+@layout EmptyLayout
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Account — Self-Service Portal</PageTitle>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+<div class="auth-shell">
+
+    <!-- ── Left brand strip ── -->
+    <div class="auth-brand">
+        <div class="auth-brand-inner">
+            <a href="/" class="auth-logo">
+                <div class="auth-logo-mark">SP</div>
+                <div class="auth-logo-text">
+                    Self-Service Portal
+                    <span>Powered by Attain Enterprise</span>
+                </div>
+            </a>
+            <div class="auth-brand-quote">
+                <blockquote>"Your Services ,Simplified."</blockquote>
+            </div>
+        </div>
+        <div class="auth-brand-footer">&copy; @DateTime.Now.Year Attain Enterprise Solutions</div>
+    </div>
+
+    <!-- ── Right form panel ── -->
+    <div class="auth-panel">
+        <div class="auth-card">
+
+            <div class="auth-card-header">
+                <div class="auth-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </div>
+                <h1 class="auth-card-title">Create your account</h1>
+                <p class="auth-card-sub">Fill in the details below to get started</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-alert error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    @_error
+                </div>
+            }
+
+            @if (_success)
+            {
+                <div class="auth-alert success">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Account created! <a href="/auth/login">Sign in now →</a>
+                </div>
+            }
+
+            <div class="auth-field">
+                <label>Full Name</label>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input type="text" placeholder="John Doe"
+                           @bind="_fullName" @bind:event="oninput"
+                           autocomplete="name" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Email address</label>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                    <input type="email" placeholder="you@example.com"
+                           @bind="_email" @bind:event="oninput"
+                           autocomplete="email" />
+                </div>
+            </div>
+
+            <div class="auth-field">
+                <label>Password</label>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input type="@(_showPwd ? "text" : "password")"
+                           placeholder="Create a strong password"
+                           @bind="_password" @bind:event="oninput"
+                           autocomplete="new-password" />
+                    <button type="button" class="auth-eye" @onclick="() => _showPwd = !_showPwd">
+                        @if (_showPwd)
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+                <!-- Password strength bar -->
+                @if (!string.IsNullOrEmpty(_password))
+                {
+                    <div class="pwd-strength">
+                        <div class="pwd-bar">
+                            <div class="pwd-fill strength-@PasswordStrength()" style="width: @PasswordStrengthPct()%"></div>
+                        </div>
+                        <span class="pwd-label strength-label-@PasswordStrength()">@PasswordStrengthLabel()</span>
+                    </div>
+                }
+            </div>
+
+            <div class="auth-field">
+                <label>Confirm Password</label>
+                <div class="auth-input-wrap">
+                    <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <input type="@(_showConfirm ? "text" : "password")"
+                           placeholder="Repeat your password"
+                           @bind="_confirm" @bind:event="oninput"
+                           autocomplete="new-password" />
+                    <button type="button" class="auth-eye" @onclick="() => _showConfirm = !_showConfirm">
+                        @if (_showConfirm)
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+            </div>
+
+            <button class="auth-submit"
+                    @onclick="HandleRegister"
+                    disabled="@(_busy || _success)">
+                @if (_busy)
+                {
+                    <span class="auth-spinner"></span>
+                    <span>Creating account…</span>
+                }
+                else
+                {
+                    <span>Create Account</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                }
+            </button>
+
+            <p class="auth-switch">
+                Already have an account?
+                <a href="/auth/login">Sign in instead</a>
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --navy: #0B1F45;
+        --navy-light: #1A3A6B;
+        --gold: #C8960A;
+        --off-white: #F5F7FA;
+        --slate: #8EA3BB;
+        --border: #D5DCE8;
+        --white: #FFFFFF;
+        --error-bg: #FFF5F5;
+        --error: #C62828;
+        --success-bg: #EAF5EC;
+        --success: #1B7A3F;
+    }
+
+    .auth-shell {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Brand strip — shared with Login */
+    .auth-brand {
+        background: var(--navy);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 40px 36px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .auth-brand::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+        }
+
+        .auth-brand::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--gold), transparent 60%);
+        }
+
+    .auth-brand-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        margin-bottom: 64px;
+    }
+
+    .auth-logo-mark {
+        width: 40px;
+        height: 40px;
+        background: var(--gold);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        font-size: 17px;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+
+    .auth-logo-text {
+        font-family: 'Sora', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        color: white;
+        line-height: 1.2;
+    }
+
+        .auth-logo-text span {
+            display: block;
+            font-weight: 400;
+            font-size: 10px;
+            color: var(--slate);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+    .auth-brand-quote blockquote {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(20px, 2.5vw, 30px);
+        font-weight: 700;
+        color: white;
+        line-height: 1.3;
+        border-left: 3px solid var(--gold);
+        padding-left: 20px;
+    }
+
+    .auth-brand-footer {
+        position: relative;
+        z-index: 1;
+        font-size: 11px;
+        color: rgba(255,255,255,0.2);
+    }
+
+    /* Form panel */
+    .auth-panel {
+        background: var(--off-white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 40px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 440px;
+        background: var(--white);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 4px 24px rgba(11,31,69,0.08);
+        animation: cardIn 0.4s ease both;
+    }
+
+    @@keyframes cardIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .auth-card-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .auth-icon-wrap {
+        width: 52px;
+        height: 52px;
+        background: #EEF2FF;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        color: var(--navy);
+    }
+
+    .auth-card-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 5px;
+    }
+
+    .auth-card-sub {
+        font-size: 13px;
+        color: var(--slate);
+    }
+
+    .auth-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 18px;
+    }
+
+        .auth-alert.error {
+            background: var(--error-bg);
+            color: var(--error);
+            border-left: 3px solid var(--error);
+        }
+
+        .auth-alert.success {
+            background: var(--success-bg);
+            color: var(--success);
+            border-left: 3px solid var(--success);
+        }
+
+            .auth-alert.success a {
+                color: var(--success);
+                font-weight: 700;
+            }
+
+    .auth-field {
+        margin-bottom: 16px;
+    }
+
+        .auth-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #4A5568;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 6px;
+        }
+
+    .auth-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .auth-input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--slate);
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+
+    .auth-input-wrap input {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        background: var(--white);
+        color: var(--navy);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .auth-input-wrap input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200,150,10,0.12);
+        }
+
+        .auth-input-wrap input::placeholder {
+            color: #B0BCC9;
+        }
+
+    .auth-eye {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--slate);
+        padding: 4px;
+        display: flex;
+        transition: color 0.2s;
+    }
+
+        .auth-eye:hover {
+            color: var(--navy);
+        }
+
+    /* Password strength */
+    .pwd-strength {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .pwd-bar {
+        flex: 1;
+        height: 4px;
+        background: #E2E8F2;
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .pwd-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition: width 0.3s, background 0.3s;
+    }
+
+        .pwd-fill.strength-weak {
+            background: #C62828;
+        }
+
+        .pwd-fill.strength-fair {
+            background: #E65100;
+        }
+
+        .pwd-fill.strength-good {
+            background: var(--gold);
+        }
+
+        .pwd-fill.strength-strong {
+            background: #1B7A3F;
+        }
+
+    .pwd-label {
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .strength-label-weak {
+        color: #C62828;
+    }
+
+    .strength-label-fair {
+        color: #E65100;
+    }
+
+    .strength-label-good {
+        color: var(--gold);
+    }
+
+    .strength-label-strong {
+        color: #1B7A3F;
+    }
+
+    .auth-submit {
+        width: 100%;
+        padding: 14px;
+        background:gray;
+        color: var(--white);
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.15s;
+        margin-top: 8px;
+        margin-bottom: 20px;
+    }
+
+        .auth-submit:hover:active {
+            background: green;
+            transform: translateY(-1px);
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.55;
+            cursor: pointer;
+        }
+
+    .auth-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .auth-switch {
+        text-align: center;
+        font-size: 13px;
+        color: var(--slate);
+    }
+
+        .auth-switch a {
+            color: var(--gold);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .auth-switch a:hover {
+                text-decoration: underline;
+            }
+
+    @@media (max-width: 768px) {
+        .auth-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-brand {
+            padding: 24px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            .auth-brand::after {
+                display: none;
+            }
+
+        .auth-brand-quote, .auth-brand-footer {
+            display: none;
+        }
+
+        .auth-logo {
+            margin-bottom: 0;
+        }
+
+        .auth-panel {
+            padding: 24px 16px;
+        }
+
+        .auth-card {
+            padding: 28px 20px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+@code {
+    string _fullName = "", _email = "", _password = "", _confirm = "", _error = "";
+    bool _busy = false, _success = false, _showPwd = false, _showConfirm = false;
+
+    private string PasswordStrength()
+    {
+        if (_password.Length < 6) return "weak";
+        if (_password.Length < 8) return "fair";
+        bool hasUpper = _password.Any(char.IsUpper);
+        bool hasDigit = _password.Any(char.IsDigit);
+        bool hasSymbol = _password.Any(c => !char.IsLetterOrDigit(c));
+        int score = (hasUpper ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
+        return score >= 2 ? "strong" : "good";
+    }
+
+    private int PasswordStrengthPct() => PasswordStrength() switch
+    {
+        "weak" => 25,
+        "fair" => 50,
+        "good" => 75,
+        "strong" => 100,
+        _ => 0
+    };
+
+    private string PasswordStrengthLabel() => PasswordStrength() switch
+    {
+        "weak" => "Weak",
+        "fair" => "Fair",
+        "good" => "Good",
+        "strong" => "Strong",
+        _ => ""
+    };
+
+    async Task HandleRegister()
+    {
+        _error = "";
+        if (string.IsNullOrWhiteSpace(_fullName) ||
+            string.IsNullOrWhiteSpace(_email) ||
+            string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "All fields are required.";
+            return;
+        }
+
+        if (_password != _confirm)
+        {
+            _error = "Passwords do not match.";
+            return;
+        }
+
+        if (_password.Length < 8)
+        {
+            _error = "Password must be at least 8 characters.";
+            return;
+        }
+
+        _busy = true;
+        bool result = await UserService.Register(_fullName, _email, _password);
+        _busy = false;
+
+        if (!result)
+            _error = "An account with this email already exists.";
+        else
+            _success = true;
+    }
+}

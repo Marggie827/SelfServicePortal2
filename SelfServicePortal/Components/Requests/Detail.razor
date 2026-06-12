@@ -1,0 +1,205 @@
+﻿@page "/requests/{RequestId:int}"
+@using SelfServicePortal.Components.Layout
+@layout MainLayout
+@inject IRequestService RequestService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_request == null)
+{
+    <MudAlert Severity="Severity.Error">
+        Request not found.
+    </MudAlert>
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mb-4">
+        @_request.Title
+    </MudText>
+
+    <MudGrid>
+        <MudItem xs="12" md="8">
+            <MudCard Elevation="2" Class="mb-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">
+                        <b>Description</b>
+                    </MudText>
+                    <MudText>
+                        @(_request.Description ??
+                            "No description provided.")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+
+            <MudText Typo="Typo.h6" Class="mb-3">
+                Comments
+            </MudText>
+
+            @foreach (var comment in _request.Comments)
+            {
+                <MudCard Elevation="1" Class="mb-2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.subtitle2">
+                            @comment.User?.FullName
+                            <MudText Typo="Typo.caption"
+                                     Class="ml-2"
+                                     Color="Color.Secondary">
+                                @comment.CreatedAt
+                                .ToString("dd MMM yyyy HH:mm")
+                            </MudText>
+                        </MudText>
+                        <MudText Class="mt-1">
+                            @comment.Text
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            }
+
+            <MudCard Elevation="2" Class="mt-4">
+                <MudCardContent>
+                    <MudTextField @bind-Value="_newComment"
+                                  Label="Add a comment"
+                                  Variant="Variant.Outlined"
+                                  Lines="3" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="SubmitComment">
+                        Post Comment
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Status</MudText>
+                    <MudChip T="string"
+                             Color="GetStatusColor(_request.Status?.Name)">
+                        @_request.Status?.Name
+                    </MudChip>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.subtitle2">Priority</MudText>
+                    <MudChip T="string"
+                             Color="GetPriorityColor(_request.Priority)">
+                        @_request.Priority
+                    </MudChip>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.subtitle2">Category</MudText>
+                    <MudText>@_request.Category?.Name</MudText>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.subtitle2">
+                        Submitted By
+                    </MudText>
+                    <MudText>@_request.User?.FullName</MudText>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.subtitle2">Created</MudText>
+                    <MudText>
+                        @_request.CreatedAt.ToString("dd MMM yyyy")
+                    </MudText>
+
+                    @if (_request.UserId == _userId &&
+                        _request.StatusId == 1)
+                    {
+                        <MudDivider Class="my-3" />
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   FullWidth="true"
+                                   OnClick="CancelRequest">
+                            Cancel Request
+                        </MudButton>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public int RequestId { get; set; }
+
+    bool _loading = true;
+    Request? _request;
+    string _newComment = "";
+    int _userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider
+            .GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+            _userId = int.Parse(userIdClaim.Value);
+
+        _request = await RequestService.GetRequestById(RequestId);
+        _loading = false;
+    }
+
+    async Task SubmitComment()
+    {
+        if (string.IsNullOrWhiteSpace(_newComment)) return;
+
+        await RequestService.AddComment(new Comment
+        {
+            RequestId = RequestId,
+            UserId = _userId,
+            Text = _newComment
+        });
+
+        _newComment = "";
+        _request = await RequestService.GetRequestById(RequestId);
+        Snackbar.Add("Comment posted!", Severity.Success);
+    }
+
+    async Task CancelRequest()
+    {
+        bool result = await RequestService
+            .CancelRequest(RequestId, _userId);
+
+        if (result)
+        {
+            Snackbar.Add("Request cancelled.", Severity.Info);
+            _request = await RequestService
+                .GetRequestById(RequestId);
+        }
+        else
+        {
+            Snackbar.Add("Could not cancel.", Severity.Error);
+        }
+    }
+
+    Color GetPriorityColor(string priority) => priority switch
+    {
+        "Low" => Color.Default,
+        "Medium" => Color.Info,
+        "High" => Color.Warning,
+        "Urgent" => Color.Error,
+        _ => Color.Default
+    };
+
+    Color GetStatusColor(string? status) => status switch
+    {
+        "Open" => Color.Primary,
+        "In Progress" => Color.Warning,
+        "Resolved" => Color.Success,
+        "Closed" => Color.Dark,
+        _ => Color.Default
+    };
+}

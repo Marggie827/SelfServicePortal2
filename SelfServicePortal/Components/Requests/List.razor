@@ -1,0 +1,119 @@
+﻿@page "/requests/list"
+@using SelfServicePortal.Components.Layout
+@layout MainLayout
+@inject IRequestService RequestService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudText Typo="Typo.h4" Class="mb-4">My Requests</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudSelect @bind-Value="_statusFilter"
+                   Label="Filter by Status"
+                   Variant="Variant.Outlined"
+                   Style="max-width:200px">
+            <MudSelectItem Value="@("All")">All</MudSelectItem>
+            <MudSelectItem Value="@("Open")">Open</MudSelectItem>
+            <MudSelectItem Value="@("In Progress")">
+                In Progress
+            </MudSelectItem>
+            <MudSelectItem Value="@("Resolved")">
+                Resolved
+            </MudSelectItem>
+            <MudSelectItem Value="@("Closed")">Closed</MudSelectItem>
+        </MudSelect>
+    </MudPaper>
+
+    <MudTable Items="FilteredRequests" Hover="true"
+              Striped="true" Elevation="2">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Priority</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.RequestId</MudTd>
+            <MudTd>@context.Title</MudTd>
+            <MudTd>@context.Category?.Name</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="GetPriorityColor(context.Priority)">
+                    @context.Priority
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="GetStatusColor(context.Status?.Name)">
+                    @context.Status?.Name
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                @context.CreatedAt.ToString("dd MMM yyyy")
+            </MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small"
+                           Variant="Variant.Outlined"
+                           Href="@($"/requests/{context.RequestId}")">
+                    View
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No requests found.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+}
+
+@code {
+    bool _loading = true;
+    string _statusFilter = "All";
+    List<Request> _requests = new();
+    int _userId;
+
+    IEnumerable<Request> FilteredRequests => _statusFilter == "All"
+        ? _requests
+        : _requests.Where(r => r.Status?.Name == _statusFilter);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider
+            .GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+        {
+            _userId = int.Parse(userIdClaim.Value);
+            _requests = await RequestService
+                .GetRequestsByUser(_userId);
+        }
+        _loading = false;
+    }
+
+    Color GetPriorityColor(string priority) => priority switch
+    {
+        "Low" => Color.Default,
+        "Medium" => Color.Info,
+        "High" => Color.Warning,
+        "Urgent" => Color.Error,
+        _ => Color.Default
+    };
+
+    Color GetStatusColor(string? status) => status switch
+    {
+        "Open" => Color.Primary,
+        "In Progress" => Color.Warning,
+        "Resolved" => Color.Success,
+        "Closed" => Color.Dark,
+        _ => Color.Default
+    };
+}

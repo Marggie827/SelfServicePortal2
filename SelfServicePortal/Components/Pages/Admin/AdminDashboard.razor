@@ -1,0 +1,293 @@
+﻿@page "/admin"
+@using SelfServicePortal.Components.Layout
+@layout MainLayout
+@inject IRequestService RequestService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Admin Panel</MudText>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2"
+                             Color="Color.Primary">Total</MudText>
+                    <MudText Typo="Typo.h4">
+                        @_allRequests.Count
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2"
+                             Color="Color.Error">Open</MudText>
+                    <MudText Typo="Typo.h4">
+                        @_allRequests.Count(r =>
+                            r.Status?.Name == "Open")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2"
+                             Color="Color.Warning">In Progress</MudText>
+                    <MudText Typo="Typo.h4">
+                        @_allRequests.Count(r =>
+                            r.Status?.Name == "In Progress")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="2">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2"
+                             Color="Color.Success">Resolved</MudText>
+                    <MudText Typo="Typo.h4">
+                        @_allRequests.Count(r =>
+                            r.Status?.Name == "Resolved")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect @bind-Value="_statusFilter"
+                           Label="Filter by Status"
+                           Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("All")">All</MudSelectItem>
+                    <MudSelectItem Value="@("Open")">Open</MudSelectItem>
+                    <MudSelectItem Value="@("In Progress")">
+                        In Progress
+                    </MudSelectItem>
+                    <MudSelectItem Value="@("Resolved")">
+                        Resolved
+                    </MudSelectItem>
+                    <MudSelectItem Value="@("Closed")">
+                        Closed
+                    </MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="_searchText"
+                              Label="Search by title"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudTable Items="FilteredRequests" Hover="true"
+              Striped="true" Elevation="2">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Submitted By</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Priority</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Assigned To</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.RequestId</MudTd>
+            <MudTd>@context.Title</MudTd>
+            <MudTd>@context.User?.FullName</MudTd>
+            <MudTd>@context.Category?.Name</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="GetPriorityColor(context.Priority)">
+                    @context.Priority
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="GetStatusColor(context.Status?.Name)">
+                    @context.Status?.Name
+                </MudChip>
+            </MudTd>
+            <MudTd>@GetAdminName(context.AssignedTo)</MudTd>
+            <MudTd>
+                @context.CreatedAt.ToString("dd MMM yyyy")
+            </MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small"
+                           Variant="Variant.Outlined"
+                           OnClick="() => OpenManageDialog(context)">
+                    Manage
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No requests found.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+}
+
+<MudDialog @bind-Visible="_dialogOpen">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Manage Request #@_selectedRequest?.RequestId
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_selectedRequest != null)
+        {
+            <MudText Class="mb-2">
+                <b>@_selectedRequest.Title</b>
+            </MudText>
+            <MudText Class="mb-4" Color="Color.Secondary">
+                @_selectedRequest.Description
+            </MudText>
+            <MudSelect @bind-Value="_newStatusId"
+                       Label="Update Status"
+                       Variant="Variant.Outlined"
+                       Class="mb-4">
+                @foreach (var status in _statuses)
+                {
+                    <MudSelectItem Value="@status.StatusId">
+                        @status.Name
+                    </MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect @bind-Value="_assignedAdminId"
+                       Label="Assign To"
+                       Variant="Variant.Outlined">
+                <MudSelectItem Value="0">Unassigned</MudSelectItem>
+                @foreach (var admin in _admins)
+                {
+                    <MudSelectItem Value="@admin.UserId">
+                        @admin.FullName
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="SaveChanges">
+            Save Changes
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    bool _loading = true;
+    bool _dialogOpen = false;
+    string _statusFilter = "All";
+    string _searchText = "";
+    int _newStatusId;
+    int _assignedAdminId;
+    int _currentAdminId;
+
+    List<Request> _allRequests = new();
+    List<Status> _statuses = new();
+    List<User> _admins = new();
+    Request? _selectedRequest;
+
+    IEnumerable<Request> FilteredRequests => _allRequests
+        .Where(r =>
+            (_statusFilter == "All" ||
+                r.Status?.Name == _statusFilter) &&
+            (string.IsNullOrEmpty(_searchText) ||
+                r.Title.Contains(_searchText,
+                    StringComparison.OrdinalIgnoreCase)));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider
+            .GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+            _currentAdminId = int.Parse(userIdClaim.Value);
+
+        _allRequests = await RequestService.GetAllRequests();
+        _statuses = await RequestService.GetStatuses();
+        _admins = await UserService.GetAllAdmins();
+        _loading = false;
+    }
+
+    void OpenManageDialog(Request request)
+    {
+        _selectedRequest = request;
+        _newStatusId = request.StatusId;
+        _assignedAdminId = request.AssignedTo ?? 0;
+        _dialogOpen = true;
+    }
+
+    void CloseDialog()
+    {
+        _dialogOpen = false;
+        _selectedRequest = null;
+    }
+
+    async Task SaveChanges()
+    {
+        if (_selectedRequest == null) return;
+
+        if (_newStatusId != _selectedRequest.StatusId)
+        {
+            await RequestService.UpdateStatus(
+                _selectedRequest.RequestId,
+                _newStatusId,
+                _currentAdminId);
+        }
+
+        if (_assignedAdminId != (_selectedRequest.AssignedTo ?? 0))
+        {
+            await RequestService.AssignRequest(
+                _selectedRequest.RequestId,
+                _assignedAdminId);
+        }
+
+        _allRequests = await RequestService.GetAllRequests();
+        Snackbar.Add("Request updated!", Severity.Success);
+        CloseDialog();
+    }
+
+    string GetAdminName(int? adminId)
+    {
+        if (adminId == null || adminId == 0) return "Unassigned";
+        return _admins.FirstOrDefault(a =>
+            a.UserId == adminId)?.FullName ?? "Unknown";
+    }
+
+    Color GetPriorityColor(string priority) => priority switch
+    {
+        "Low" => Color.Default,
+        "Medium" => Color.Info,
+        "High" => Color.Warning,
+        "Urgent" => Color.Error,
+        _ => Color.Default
+    };
+
+    Color GetStatusColor(string? status) => status switch
+    {
+        "Open" => Color.Primary,
+        "In Progress" => Color.Warning,
+        "Resolved" => Color.Success,
+        "Closed" => Color.Dark,
+        _ => Color.Default
+    };
+}
