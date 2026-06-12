@@ -3,8 +3,7 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 
-q<MudDialogProvider />
-<MudSnackbarProvider />
+
 <MudThemeProvider Theme="_theme" />
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Primary">
@@ -67,10 +66,11 @@ q<MudDialogProvider />
         {
             Primary = "#1976D2",
             Secondary = "#424242",
-            AppbarBackground = "blue",
-            Background = "purple"
+            AppbarBackground = "#0000FF", // Valid hex code for Blue
+            Background = "#800080"       // Valid hex code for Purple
         }
     };
+
 
     private void ToggleDrawer()
     {
